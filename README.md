@@ -1,48 +1,97 @@
-# package-name
+# changelog-pick
 
-[![npm version][npm-version-src]][npm-version-href]
-[![npm downloads][npm-downloads-src]][npm-downloads-href]
-[![Github Actions][github-actions-src]][github-actions-href]
-[![Codecov][codecov-src]][codecov-href]
+Interactive changelog generator with JSON, Markdown, and HTML output. Perfect for teams who want full control over which commits make it into their changelog.
 
-> Package description
+## Features
+
+- 🎯 Interactive commit selection with checkboxes
+- 📝 Supports conventional commits (feat, fix, perf)
+- 📊 Multiple output formats: JSON, Markdown, HTML
+- 🏷️ Automatic version detection from git tags
+- 🔄 Updates existing versions or creates new ones
+
+## Installation
+
+```bash
+npm install -g changelog-pick
+```
+
+Or use with npx:
+
+```bash
+npx changelog-pick
+```
 
 ## Usage
 
-Install package:
+In your git repository:
 
-```sh
-# npm
-npm install package-name
-
-# pnpm
-pnpm install package-name
+```bash
+changelog-pick
 ```
 
-```js
-import {} from 'package-name'
+Or with npx:
+
+```bash
+npx changelog-pick
 ```
 
-## 💻 Development
+The tool will:
+1. Scan your git commits for conventional commits
+2. Show an interactive checkbox list for commit selection
+3. Let you choose output formats (JSON, MD, HTML)
+4. Generate changelog files with your selections
 
-- Clone this repository
-- Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+## Output Formats
+
+### JSON
+```json
+[
+  {
+    "version": "v1.2.0",
+    "date": "2025-06-23",
+    "entries": [
+      {
+        "type": "feature",
+        "text": "add user authentication"
+      },
+      {
+        "type": "fix",
+        "text": "resolve memory leak"
+      }
+    ]
+  }
+]
+```
+
+### Markdown
+```markdown
+# Changelog
+
+## v1.2.0 - 2025-06-23
+
+### ✨ Features
+- add user authentication
+
+### 🐛 Fixes
+- resolve memory leak
+```
+
+### HTML
+Clean, responsive HTML with built-in styling for easy sharing.
+
+## Supported Commit Types
+
+- `feat:` → `feature`
+- `fix:` → `fix`
+- `perf:` → `performance`
+
+## Requirements
+
+- Git repository
+- Conventional commits in your history
+- Node.js 16+
 
 ## License
 
-Made with ❤️
-
-Published under [MIT License](./LICENCE).
-
-<!-- Badges -->
-
-[npm-version-src]: https://img.shields.io/npm/v/package-name?style=flat-square
-[npm-version-href]: https://npmjs.com/package/package-name
-[npm-downloads-src]: https://img.shields.io/npm/dm/package-name?style=flat-square
-[npm-downloads-href]: https://npm.chart.dev/package-name
-[github-actions-src]: https://img.shields.io/github/actions/workflow/status/danielroe/package-name/ci.yml?branch=main&style=flat-square
-[github-actions-href]: https://github.com/danielroe/package-name/actions?query=workflow%3Aci
-[codecov-src]: https://img.shields.io/codecov/c/gh/danielroe/package-name/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/danielroe/package-name
+MIT
