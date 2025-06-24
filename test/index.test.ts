@@ -196,14 +196,13 @@ describe('exportToMarkdown', async () => {
 
 ## v1.0.0 - 2023-01-01
 
-### Features
+### ✨ New Features
 
 - Add new feature
 
-### Fixes
+### 🐛 Fixes
 
 - Fix bug
-
 `
 
     expect(writeFileSync).toHaveBeenCalledWith('CHANGELOG.md', expectedContent)
@@ -212,7 +211,7 @@ describe('exportToMarkdown', async () => {
   it('handles empty changelog', () => {
     exportToMarkdown([], 'CHANGELOG.md')
 
-    expect(writeFileSync).toHaveBeenCalledWith('CHANGELOG.md', '# Changelog\n\n')
+    expect(writeFileSync).toHaveBeenCalledWith('CHANGELOG.md', '# Changelog\n')
   })
 })
 
