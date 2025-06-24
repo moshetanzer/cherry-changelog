@@ -10,27 +10,10 @@ Interactive changelog generator with commit picker. Choose which commits to incl
 - 🏷️ Automatic version detection from git tags
 - 🔄 Updates existing versions or creates new ones
 
-## Installation
 
-```bash
-npm install -g cherry-changelog
-```
+## Quick Start
 
-Or use with npx:
-
-```bash
-npx cherry-changelog
-```
-
-## Usage
-
-In your repository:
-
-```bash
-cherry-changelog
-```
-
-Or with npx:
+Run the following in any project:
 
 ```bash
 npx cherry-changelog
@@ -120,10 +103,6 @@ cherry-changelog --types feat,fix
 ### HTML
 
 Clean, responsive HTML with built-in styling for easy sharing.
-
-> 💡 **Tip:** Cherry Changelog includes only `feat`, `fix`, and `perf` by default — so your changelog stays focused on what users care about.
->
-> To include other types like `chore` or `docs`, use the `--types` flag. They’ll appear in a separate `📦 Other` section, always listed last.
 
 ## License
 
