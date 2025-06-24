@@ -165,8 +165,8 @@ function exportToHtml(changelog: ChangelogVersion[], filename: string): void {
   let content = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Changelog</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -179,6 +179,7 @@ function exportToHtml(changelog: ChangelogVersion[], filename: string): void {
         .feature { color: #28a745; }
         .fix { color: #dc3545; }
         .performance { color: #fd7e14; }
+        .other { color: #6c757d; font-style: italic; }
     </style>
 </head>
 <body>
@@ -198,9 +199,23 @@ function exportToHtml(changelog: ChangelogVersion[], filename: string): void {
       return acc
     }, {} as Record<string, ChangelogEntry[]>)
 
-    Object.entries(groupedEntries).forEach(([type, entries]) => {
-      const typeTitle = `${type.charAt(0).toUpperCase() + type.slice(1)}s`
-      content += `        <h3 class="${type}">${typeTitle}</h3>
+    const typeTitleMap: Record<string, string> = {
+      feature: '✨ New Features',
+      fix: '🐛 Fixes',
+      performance: '⚡ Performance',
+    }
+
+    const orderedTypes = ['feature', 'fix', 'performance']
+    const sortedEntries = Object.entries(groupedEntries).sort(([a], [b]) => {
+      const aIndex = orderedTypes.indexOf(a)
+      const bIndex = orderedTypes.indexOf(b)
+      return (aIndex === -1 ? Infinity : aIndex) - (bIndex === -1 ? Infinity : bIndex)
+    })
+
+    sortedEntries.forEach(([type, entries]) => {
+      const cssClass = orderedTypes.includes(type) ? type : 'other'
+      const typeTitle = typeTitleMap[type] || '📦 Other'
+      content += `        <h3 class="${cssClass}">${typeTitle}</h3>
         <ul>
 `
       entries.forEach((entry) => {
