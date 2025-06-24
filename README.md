@@ -37,6 +37,9 @@ The tool will:
 | `--auto-select` | `-a` | boolean | `false` | Auto-select all commits without prompting |
 | `--input-file` | `-i` | string | `changelog.json` | Input changelog file |
 
+> [!NOTE] 
+> Any type that doesn't match `perf`, `fix`, or `feat` will be categorized under "Other" in the changelog (if included). We feel this is neatest way to do this.
+
 ### Examples
 
 Generate multiple formats:
