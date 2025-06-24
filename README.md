@@ -121,11 +121,9 @@ cherry-changelog --types feat,fix
 
 Clean, responsive HTML with built-in styling for easy sharing.
 
-## Supported Commit Types
-
-- `feat:` → `feature`
-- `fix:` → `fix`
-- `perf:` → `performance`
+> 💡 **Tip:** Cherry Changelog includes only `feat`, `fix`, and `perf` by default — so your changelog stays focused on what users care about.
+>
+> To include other types like `chore` or `docs`, use the `--types` flag. They’ll appear in a separate `📦 Other` section, always listed last.
 
 ## License
 
