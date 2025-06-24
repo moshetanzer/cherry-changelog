@@ -90,8 +90,8 @@ describe('mapCommitType', () => {
   })
 
   it('maps unknown types to feature', () => {
-    expect(mapCommitType('docs')).toBe('feature')
-    expect(mapCommitType('chore')).toBe('feature')
+    expect(mapCommitType('docs')).toBe('docs')
+    expect(mapCommitType('chore')).toBe('chore')
     expect(mapCommitType('unknown')).toBe('feature')
   })
 })
