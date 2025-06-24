@@ -18,6 +18,14 @@ vi.mock('node:fs', () => ({
   writeFileSync: vi.fn(),
 }))
 
+vi.mock('node:process', () => ({
+  exit: vi.fn(),
+}))
+
+vi.spyOn(process, 'exit').mockImplementation(() => {
+  throw new Error('process.exit called')
+})
+
 describe('parseConventionalCommit', () => {
   it('parses conventional commit with type only', () => {
     const result = parseConventionalCommit('feat: add new feature')
