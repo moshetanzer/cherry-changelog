@@ -1,6 +1,6 @@
-# changelog-pick
+# 🍒 Cherry Changelog
 
-Interactive changelog generator with JSON, Markdown, and HTML output. Perfect for teams who want full control over which commits make it into their changelog.
+Interactive changelog generator with commit picker. Choose which commits to include in your changelog with multiple output formats (JSON, Markdown, HTML). Perfect for teams who want full control over their release notes.
 
 ## Features
 
@@ -13,27 +13,27 @@ Interactive changelog generator with JSON, Markdown, and HTML output. Perfect fo
 ## Installation
 
 ```bash
-npm install -g changelog-pick
+npm install -g cherry-changelog
 ```
 
 Or use with npx:
 
 ```bash
-npx changelog-pick
+npx cherry-changelog
 ```
 
 ## Usage
 
-In your git repository:
+In your repository:
 
 ```bash
-changelog-pick
+cherry-changelog
 ```
 
 Or with npx:
 
 ```bash
-npx changelog-pick
+npx cherry-changelog
 ```
 
 The tool will:
@@ -85,12 +85,6 @@ Clean, responsive HTML with built-in styling for easy sharing.
 - `feat:` → `feature`
 - `fix:` → `fix`
 - `perf:` → `performance`
-
-## Requirements
-
-- Git repository
-- Conventional commits in your history
-- Node.js 16+
 
 ## License
 
