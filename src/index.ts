@@ -135,8 +135,21 @@ function exportToMarkdown(changelog: ChangelogVersion[], filename: string): void
       return acc
     }, {} as Record<string, ChangelogEntry[]>)
 
-    Object.entries(groupedEntries).forEach(([type, entries]) => {
-      const typeTitle = `${type === 'feature' ? 'Features' : type === 'fix' ? 'Fixes' : 'Performance'}`
+    const orderedTypes = ['feature', 'fix', 'performance']
+    const sortedEntries = Object.entries(groupedEntries).sort(([a], [b]) => {
+      const aIndex = orderedTypes.indexOf(a)
+      const bIndex = orderedTypes.indexOf(b)
+
+      return (aIndex === -1 ? Infinity : aIndex) - (bIndex === -1 ? Infinity : bIndex)
+    })
+
+    sortedEntries.forEach(([type, entries]) => {
+      const typeTitleMap: Record<string, string> = {
+        feature: '✨ New Features',
+        fix: '🐛 Fixes',
+        performance: '⚡ Performance',
+      }
+      const typeTitle = typeTitleMap[type] || '📦 Other'
       content += `### ${typeTitle}\n\n`
       entries.forEach((entry) => {
         content += `- ${entry.text}\n`
@@ -145,7 +158,7 @@ function exportToMarkdown(changelog: ChangelogVersion[], filename: string): void
     })
   })
 
-  writeFileSync(filename, content)
+  writeFileSync(filename, `${content.trimEnd()}\n`)
 }
 
 function exportToHtml(changelog: ChangelogVersion[], filename: string): void {
