@@ -1,5 +1,5 @@
 {
-  "name": "chooselog",
+  "name": "cherry-changelog",
   "type": "module",
   "version": "0.0.0",
   "packageManager": "pnpm@10.12.2",
@@ -37,6 +37,7 @@
     "test:types": "tsc --noEmit"
   },
   "dependencies": {
+    "citty": "^0.1.6",
     "inquirer": "^12.6.3"
   },
   "devDependencies": {

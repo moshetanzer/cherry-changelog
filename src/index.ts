@@ -2,6 +2,7 @@
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import process from 'node:process'
+import { defineCommand, runMain } from 'citty'
 import inquirer from 'inquirer'
 
 interface ParsedCommit {
@@ -24,15 +25,17 @@ interface ChangelogVersion {
   entries: ChangelogEntry[]
 }
 
+type ExportFormat = 'json' | 'markdown' | 'html'
+
 function parseConventionalCommit(message: string): ParsedCommit {
   const conventionalPattern = /^(feat|fix|docs|style|refactor|perf|test|chore|build|ci)(\([^)]+\))?: (.+)$/
   const match = message.match(conventionalPattern)
 
   if (match) {
     return {
-      type: match[1],
+      type: match[1] ?? null,
       scope: match[2] ? match[2].slice(1, -1) : null,
-      subject: match[3],
+      subject: match[3] ?? '',
       hash: '',
       raw: '',
       isConventional: true,
@@ -58,7 +61,7 @@ function getCommits(): ParsedCommit[] {
 
     return rawCommits.map((commit) => {
       const lines = commit.split('\n')
-      const hash = lines[0]
+      const hash = lines[0] || ''
       const subject = lines[1] || ''
 
       const result = parseConventionalCommit(subject)
@@ -107,76 +110,266 @@ function mapCommitType(type: string): 'feature' | 'fix' | 'performance' {
   }
 }
 
-async function main() {
-  console.log('🔍 Scanning git commits...')
+function exportToJson(changelog: ChangelogVersion[], filename: string): void {
+  writeFileSync(filename, JSON.stringify(changelog, null, 2))
+}
 
-  const commits = getCommits()
-  const allowedTypes = ['feat', 'fix', 'perf']
-  const filteredCommits = commits.filter(commit =>
-    allowedTypes.includes(commit.type || ''),
-  )
+function exportToMarkdown(changelog: ChangelogVersion[], filename: string): void {
+  let content = '# Changelog\n\n'
 
-  if (filteredCommits.length === 0) {
-    console.log('⚠️  No conventional commits found for types: feat, fix, perf')
-    console.log('💡 Make sure your commits follow the format: type: description')
-    process.exit(0)
-  }
+  changelog.forEach((version) => {
+    content += `## ${version.version} - ${version.date}\n\n`
 
-  const choices = filteredCommits.map((commit, index) => ({
-    name: `[${mapCommitType(commit.type!)}] ${commit.subject} (${commit.hash.substring(0, 8)})`,
-    value: index,
-    checked: false,
-  }))
+    const groupedEntries = version.entries.reduce((acc, entry) => {
+      if (!acc[entry.type]) {
+        acc[entry.type] = []
+      }
+      acc[entry.type]!.push(entry)
+      return acc
+    }, {} as Record<string, ChangelogEntry[]>)
 
-  const { selectedIndices } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selectedIndices',
-      message: 'Select commits to include in changelog:',
-      choices,
-      pageSize: 10,
-    },
-  ])
-
-  if (selectedIndices.length === 0) {
-    console.log('⚠️  No commits selected, changelog not updated')
-    process.exit(0)
-  }
-
-  const selectedCommits: ChangelogEntry[] = selectedIndices.map((index: number) => {
-    const commit = filteredCommits[index]
-    return {
-      type: mapCommitType(commit.type!),
-      text: commit.subject,
-    }
+    Object.entries(groupedEntries).forEach(([type, entries]) => {
+      const typeTitle = `${type === 'feature' ? 'Features' : type === 'fix' ? 'Fixes' : 'Performance'}`
+      content += `### ${typeTitle}\n\n`
+      entries.forEach((entry) => {
+        content += `- ${entry.text}\n`
+      })
+      content += '\n'
+    })
   })
 
-  const version = getVersion()
-  const date = new Date().toISOString().split('T')[0]
-  const changelog = loadChangelog('changelog.json')
+  writeFileSync(filename, content)
+}
 
-  const existingVersionIndex = changelog.findIndex(entry => entry.version === version)
-  const newEntry: ChangelogVersion = {
-    version,
-    date,
-    entries: selectedCommits,
-  }
+function exportToHtml(changelog: ChangelogVersion[], filename: string): void {
+  let content = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h2 { color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        h3 { color: #666; margin-top: 20px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 5px; }
+        .version { margin-bottom: 30px; }
+        .feature { color: #28a745; }
+        .fix { color: #dc3545; }
+        .performance { color: #fd7e14; }
+    </style>
+</head>
+<body>
+    <h1>Changelog</h1>
+`
 
-  if (existingVersionIndex >= 0) {
-    changelog[existingVersionIndex] = newEntry
-    console.log(`✅ Updated existing version ${version} in changelog.json`)
-  }
-  else {
-    changelog.unshift(newEntry)
-    console.log(`✅ Added new version ${version} to changelog.json`)
-  }
+  changelog.forEach((version) => {
+    content += `    <div class="version">
+        <h2>${version.version} - ${version.date}</h2>
+`
 
-  writeFileSync('changelog.json', JSON.stringify(changelog, null, 2))
-  console.log(`📝 Added ${selectedCommits.length} selected commits to changelog`)
+    const groupedEntries = version.entries.reduce((acc, entry) => {
+      if (!acc[entry.type]) {
+        acc[entry.type] = []
+      }
+      acc[entry.type]!.push(entry)
+      return acc
+    }, {} as Record<string, ChangelogEntry[]>)
 
-  selectedCommits.forEach((entry) => {
-    console.log(`  • ${entry.type}: ${entry.text}`)
+    Object.entries(groupedEntries).forEach(([type, entries]) => {
+      const typeTitle = `${type.charAt(0).toUpperCase() + type.slice(1)}s`
+      content += `        <h3 class="${type}">${typeTitle}</h3>
+        <ul>
+`
+      entries.forEach((entry) => {
+        content += `            <li>${entry.text}</li>
+`
+      })
+      content += `        </ul>
+`
+    })
+
+    content += `    </div>
+`
+  })
+
+  content += `</body>
+</html>`
+
+  writeFileSync(filename, content)
+}
+
+function exportChangelog(changelog: ChangelogVersion[], formats: ExportFormat[], outputDir: string = '.'): void {
+  formats.forEach((format) => {
+    const filename = `${outputDir}/${format === 'json' ? 'changelog.json' : format === 'markdown' ? 'CHANGELOG.md' : 'changelog.html'}`
+
+    switch (format) {
+      case 'json':
+        exportToJson(changelog, filename)
+        console.log(`✅ Exported to ${filename}`)
+        break
+      case 'markdown':
+        exportToMarkdown(changelog, filename)
+        console.log(`✅ Exported to ${filename}`)
+        break
+      case 'html':
+        exportToHtml(changelog, filename)
+        console.log(`✅ Exported to ${filename}`)
+        break
+    }
   })
 }
 
-main().catch(console.error)
+const main = defineCommand({
+  meta: {
+    name: 'changelog-generator',
+    version: '1.0.0',
+    description: 'Generate changelog from conventional commits',
+  },
+  args: {
+    'format': {
+      type: 'string',
+      description: 'Export formats (comma-separated)',
+      default: 'markdown',
+      alias: 'f',
+    },
+    'output': {
+      type: 'string',
+      description: 'Output directory',
+      default: '.',
+      alias: 'o',
+    },
+    'version': {
+      type: 'string',
+      description: 'Override version (defaults to latest git tag)',
+      alias: 'v',
+    },
+    'types': {
+      type: 'string',
+      description: 'Commit types to include (comma-separated)',
+      default: 'feat,fix,perf',
+      alias: 't',
+    },
+    'auto-select': {
+      type: 'boolean',
+      description: 'Auto-select all commits without prompting',
+      default: false,
+      alias: 'a',
+    },
+    'input-file': {
+      type: 'string',
+      description: 'Input changelog file',
+      default: 'changelog.json',
+      alias: 'i',
+    },
+  },
+  async run({ args }) {
+    console.log('🔍 Scanning git commits...')
+
+    const commits = getCommits()
+    const allowedTypes = args.types.split(',').map(t => t.trim())
+    const formats = args.format.split(',').map(f => f.trim()) as ExportFormat[]
+
+    const validFormats = formats.filter(f => ['json', 'markdown', 'html'].includes(f))
+    if (validFormats.length === 0) {
+      console.error('❌ Invalid format(s). Use: json, markdown, html')
+      process.exit(1)
+    }
+
+    const filteredCommits = commits.filter(commit =>
+      allowedTypes.includes(commit.type || ''),
+    )
+
+    if (filteredCommits.length === 0) {
+      console.log(`⚠️  No conventional commits found for types: ${allowedTypes.join(', ')}`)
+      console.log('💡 Make sure your commits follow the format: type: description')
+      process.exit(0)
+    }
+
+    let selectedCommits: ChangelogEntry[]
+
+    if (args['auto-select']) {
+      selectedCommits = filteredCommits.map(commit => ({
+        type: mapCommitType(commit.type!),
+        text: commit.subject,
+      }))
+      console.log(`✅ Auto-selected all ${selectedCommits.length} commits`)
+    }
+    else {
+      const choices = filteredCommits.map((commit, index) => ({
+        name: `[${mapCommitType(commit.type!)}] ${commit.subject} (${commit.hash.substring(0, 8)})`,
+        value: index,
+        checked: false,
+      }))
+
+      const { selectedIndices } = await inquirer.prompt([
+        {
+          type: 'checkbox',
+          name: 'selectedIndices',
+          message: 'Select commits to include in changelog:',
+          choices,
+          pageSize: 10,
+        },
+      ])
+
+      if (selectedIndices.length === 0) {
+        console.log('⚠️  No commits selected, changelog not updated')
+        process.exit(0)
+      }
+
+      selectedCommits = selectedIndices.map((index: number) => {
+        const commit = filteredCommits[index]
+        if (!commit) {
+          throw new Error(`Commit at index ${index} is undefined`)
+        }
+        return {
+          type: mapCommitType(commit.type!),
+          text: commit.subject,
+        }
+      })
+    }
+
+    const version = args.version || getVersion()
+    const date = new Date().toISOString().split('T')[0] || ''
+    const changelog = loadChangelog(args['input-file'])
+
+    const existingVersionIndex = changelog.findIndex(entry => entry.version === version)
+    const newEntry: ChangelogVersion = {
+      version,
+      date,
+      entries: selectedCommits,
+    }
+
+    if (existingVersionIndex >= 0) {
+      changelog[existingVersionIndex] = newEntry
+      console.log(`✅ Updated existing version ${version} in changelog`)
+    }
+    else {
+      changelog.unshift(newEntry)
+      console.log(`✅ Added new version ${version} to changelog`)
+    }
+
+    exportChangelog(changelog, validFormats, args.output)
+
+    console.log(`📝 Added ${selectedCommits.length} selected commits to changelog`)
+    selectedCommits.forEach((entry) => {
+      console.log(`  • ${entry.type}: ${entry.text}`)
+    })
+  },
+})
+
+runMain(main)
+
+export {
+  exportChangelog,
+  exportToHtml,
+  exportToJson,
+  exportToMarkdown,
+  loadChangelog,
+  mapCommitType,
+  parseConventionalCommit,
+}
+
+export type { ChangelogEntry, ChangelogVersion, ExportFormat, ParsedCommit }
