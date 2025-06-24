@@ -15,7 +15,7 @@ interface ParsedCommit {
 }
 
 interface ChangelogEntry {
-  type: 'feature' | 'fix' | 'performance'
+  type: 'feature' | 'fix' | 'performance' | 'chore' | 'docs' | 'style' | 'refactor' | 'test' | 'build' | 'ci'
   text: string
 }
 
@@ -101,11 +101,18 @@ function loadChangelog(file: string): ChangelogVersion[] {
   }
 }
 
-function mapCommitType(type: string): 'feature' | 'fix' | 'performance' {
+function mapCommitType(type: string): 'feature' | 'fix' | 'performance' | 'chore' | 'docs' | 'style' | 'refactor' | 'test' | 'build' | 'ci' {
   switch (type) {
     case 'feat': return 'feature'
     case 'fix': return 'fix'
     case 'perf': return 'performance'
+    case 'chore': return 'chore'
+    case 'docs': return 'docs'
+    case 'style': return 'style'
+    case 'refactor': return 'refactor'
+    case 'test': return 'test'
+    case 'build': return 'build'
+    case 'ci': return 'ci'
     default: return 'feature'
   }
 }
