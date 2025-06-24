@@ -3,9 +3,25 @@
   "type": "module",
   "version": "0.0.1",
   "packageManager": "pnpm@10.12.2",
-  "description": "",
+  "description": "Interactive changelog generator with commit picker. Choose which commits to include in your changelog with multiple output formats (JSON, Markdown, HTML). Perfect for teams who want full control over their release notes.",
   "license": "MIT",
   "repository": "moshetanzer/cherry-changelog",
+  "keywords": [
+    "changelog",
+    "git",
+    "conventional-commits",
+    "interactive",
+    "cli",
+    "markdown",
+    "json",
+    "html",
+    "release-notes",
+    "commit-picker",
+    "versioning",
+    "developer-tools",
+    "workflow",
+    "team-collaboration"
+  ],
   "sideEffects": false,
   "exports": {
     ".": "./dist/index.mjs"
