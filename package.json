@@ -1,7 +1,7 @@
 {
   "name": "cherry-changelog",
   "type": "module",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "packageManager": "pnpm@10.12.2",
   "description": "Interactive changelog generator with commit picker. Choose which commits to include in your changelog with multiple output formats (JSON, Markdown, HTML). Perfect for teams who want full control over their release notes.",
   "license": "MIT",
