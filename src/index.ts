@@ -332,8 +332,7 @@ const main = defineCommand({
     )
 
     if (filteredCommits.length === 0) {
-      console.log(`⚠️  No conventional commits found for types: ${allowedTypes.join(', ')}`)
-      console.log('💡 Make sure your commits follow the format: type: description')
+      console.log(`⚠️  No commits found since last tag. If this is unexpected, please make sure you have conventional commits using the following types: ${allowedTypes.join(', ')}.`)
       process.exit(0)
     }
 
