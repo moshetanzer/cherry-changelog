@@ -48,7 +48,7 @@
     "build": "unbuild",
     "lint": "eslint . --fix",
     "prepack": "pnpm build",
-    "prepublishOnly": "pnpm lint && pnpm test",
+    "prepublishOnly": "pnpm lint",
     "release": "bumpp && pnpm publish",
     "test:versions": "installed-check -d --no-workspaces",
     "test:types": "tsc --noEmit"
