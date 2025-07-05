@@ -6,6 +6,7 @@ import {
   exportToHtml,
   exportToJson,
   exportToMarkdown,
+  getCommits,
   loadChangelog,
   mapCommitType,
   parseConventionalCommit,
@@ -20,6 +21,10 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:process', () => ({
   exit: vi.fn(),
+}))
+
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
 }))
 
 vi.spyOn(process, 'exit').mockImplementation(() => {
@@ -311,5 +316,135 @@ describe('exportChangelog', async () => {
 
     expect(console.log).toHaveBeenCalledWith('✅ Exported to output/changelog.json')
     expect(console.log).toHaveBeenCalledWith('✅ Exported to output/changelog.html')
+  })
+})
+
+describe('getCommits', async () => {
+  const { execSync } = await import('node:child_process')
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('gets commits since last tag when tag exists', () => {
+    // Mock git describe to return a tag
+    vi.mocked(execSync)
+      .mockReturnValueOnce('v1.0.0')
+      // Mock git log to return commits
+      .mockReturnValueOnce(`abc123
+feat: add new feature
+Some body text
+==END==def456
+fix(auth): resolve login issue
+
+==END==`)
+
+    const result = getCommits()
+
+    expect(execSync).toHaveBeenCalledWith('git describe --tags --abbrev=0', { encoding: 'utf8' })
+    expect(execSync).toHaveBeenCalledWith('git log v1.0.0..HEAD --pretty=format:"%H%n%s%n%b%n==END=="', { encoding: 'utf8' })
+
+    expect(result).toEqual([
+      {
+        type: 'feat',
+        scope: null,
+        subject: 'add new feature',
+        hash: 'abc123',
+        raw: 'abc123\nfeat: add new feature\nSome body text',
+        isConventional: true,
+      },
+      {
+        type: 'fix',
+        scope: 'auth',
+        subject: 'resolve login issue',
+        hash: 'def456',
+        raw: 'def456\nfix(auth): resolve login issue',
+        isConventional: true,
+      },
+    ])
+  })
+
+  it('gets all commits when no tags exist', () => {
+    // Mock git describe to throw (no tags)
+    vi.mocked(execSync)
+      .mockImplementationOnce(() => {
+        throw new Error('No tags found')
+      })
+      // Mock git log to return commits
+      .mockReturnValueOnce(`abc123
+feat: initial commit
+
+==END==`)
+
+    const result = getCommits()
+
+    expect(execSync).toHaveBeenCalledWith('git describe --tags --abbrev=0', { encoding: 'utf8' })
+    expect(execSync).toHaveBeenCalledWith('git log --pretty=format:"%H%n%s%n%b%n==END=="', { encoding: 'utf8' })
+
+    expect(result).toEqual([
+      {
+        type: 'feat',
+        scope: null,
+        subject: 'initial commit',
+        hash: 'abc123',
+        raw: 'abc123\nfeat: initial commit',
+        isConventional: true,
+      },
+    ])
+  })
+
+  it('handles non-conventional commits', () => {
+    vi.mocked(execSync)
+      .mockReturnValueOnce('v1.0.0')
+      .mockReturnValueOnce(`abc123
+random commit message
+
+==END==`)
+
+    const result = getCommits()
+
+    expect(result).toEqual([
+      {
+        type: null,
+        scope: null,
+        subject: 'random commit message',
+        hash: 'abc123',
+        raw: 'abc123\nrandom commit message',
+        isConventional: false,
+      },
+    ])
+  })
+
+  it('exits process when git log fails', () => {
+    vi.mocked(execSync)
+      .mockReturnValueOnce('v1.0.0')
+      .mockImplementationOnce(() => {
+        throw new Error('Git log failed')
+      })
+
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() => getCommits()).toThrow('process.exit called')
+    expect(console.error).toHaveBeenCalledWith('Error reading git commits:', expect.any(Error))
+  })
+
+  it('filters out empty commits', () => {
+    vi.mocked(execSync)
+      .mockReturnValueOnce('v1.0.0')
+      .mockReturnValueOnce(`abc123
+feat: add feature
+
+==END==
+
+==END==def456
+fix: fix bug
+
+==END==`)
+
+    const result = getCommits()
+
+    expect(result).toHaveLength(2)
+    expect(result[0]?.subject).toBe('add feature')
+    expect(result[1]?.subject).toBe('fix bug')
   })
 })
