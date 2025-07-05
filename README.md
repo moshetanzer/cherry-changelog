@@ -10,7 +10,6 @@ Interactive changelog generator with commit picker. Choose which commits to incl
 - 🏷️ Automatic version detection from git tags
 - 🔄 Updates existing versions or creates new ones
 
-
 ## Quick Start
 
 Run the following in any project:
@@ -37,7 +36,7 @@ The tool will:
 | `--auto-select` | `-a` | boolean | `false` | Auto-select all commits without prompting |
 | `--input-file` | `-i` | string | `changelog.json` | Input changelog file |
 
-> [!NOTE] 
+> [!NOTE]
 > Any type that doesn't match `perf`, `fix`, or `feat` will be categorized under "Other" in the changelog (if included). We feel this is neatest way to do this.
 
 ### Examples
