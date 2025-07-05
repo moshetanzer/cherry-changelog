@@ -68,8 +68,8 @@ function getCommits(): ParsedCommit[] {
       ? `git log ${lastTag}..HEAD --pretty=format:"%H%n%s%n%b%n==END=="`
       : 'git log --pretty=format:"%H%n%s%n%b%n==END=="'
 
-    const rawCommits = execSync(gitLogCommand, { encoding: 'utf8' })
-      .split('==END==')
+    const rawOutput = execSync(gitLogCommand, { encoding: 'utf8' }) || ''
+    const rawCommits = rawOutput.split('==END==')
       .map(str => str.trim())
       .filter(Boolean)
 
