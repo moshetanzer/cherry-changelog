@@ -51,10 +51,24 @@ function parseConventionalCommit(message: string): ParsedCommit {
     isConventional: false,
   }
 }
-
 function getCommits(): ParsedCommit[] {
   try {
-    const rawCommits = execSync('git log --pretty=format:"%H%n%s%n%b%n==END=="', { encoding: 'utf8' })
+    // Get the last tag
+    let lastTag = ''
+    try {
+      lastTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim()
+    }
+    catch {
+      // If no tags exist, get all commits
+      lastTag = ''
+    }
+
+    // Build the git log command - get commits since last tag
+    const gitLogCommand = lastTag
+      ? `git log ${lastTag}..HEAD --pretty=format:"%H%n%s%n%b%n==END=="`
+      : 'git log --pretty=format:"%H%n%s%n%b%n==END=="'
+
+    const rawCommits = execSync(gitLogCommand, { encoding: 'utf8' })
       .split('==END==')
       .map(str => str.trim())
       .filter(Boolean)
@@ -402,6 +416,7 @@ export {
   exportToHtml,
   exportToJson,
   exportToMarkdown,
+  getCommits,
   loadChangelog,
   mapCommitType,
   parseConventionalCommit,
