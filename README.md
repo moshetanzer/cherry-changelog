@@ -20,7 +20,7 @@ npx cherry-changelog
 Or add it to your release command (this is how i use it :)):
 
 ```bash
-"release": "npx cherry-changelog --input-file 'public/changelog.json' --output 'public/' --format json && bumpp && git add -u public/changelog.json && (git diff --cached --quiet || (git commit -m 'chore: update changelog' && git push))"
+"release": "npx cherry-changelog --input-file 'public/changelog.json' --output 'public/' --format json && bpx bumpp && git add -u public/changelog.json && (git diff --cached --quiet || (git commit -m 'chore: update changelog' && git push))"
 ```
 
 The tool will:
