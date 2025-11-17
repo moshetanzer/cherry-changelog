@@ -1,6 +1,6 @@
 # 🍒 Cherry Changelog
 
-Interactive changelog generator with commit picker. Choose which commits to include in your changelog with multiple output formats (JSON, Markdown, HTML). Perfect for teams who want full control over their release notes.
+Interactive terminal changelog generator with commit picker. Choose which commits to include in your changelog with multiple output formats (JSON, Markdown, HTML). Perfect for teams who want full control over their release notes.
 
 ## Features
 
