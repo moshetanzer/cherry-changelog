@@ -12,12 +12,12 @@ Interactive changelog generator with commit picker. Choose which commits to incl
 
 ## Quick Start
 
-Run the following in any project:
+Run the following in any project to test:
 
 ```bash
 npx cherry-changelog
 ```
-Or add it to your release command (this is how i use it :)):
+Or add it to your release command in your `package.json` (this is how i use it :)):
 
 ```bash
 "release": "npx cherry-changelog --input-file 'public/changelog.json' --output 'public/' --format json && npx bumpp && git add -u public/changelog.json && (git diff --cached --quiet || (git commit -m 'chore: update changelog' && git push))"
@@ -27,8 +27,9 @@ The tool will:
 
 1. Scan your git commits for conventional commits
 2. Show an interactive checkbox list for commit selection
-3. Let you choose output formats (JSON, MD, HTML)
-4. Generate changelog files with your selections
+3. Ask you if you would like to edit any of commit messages (for your changelog - this doesnt edit actual commit messsages)
+4. Let you choose output formats (JSON, MD, HTML)
+5. Generate changelog files with your selections
 
 ## Options
 
