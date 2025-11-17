@@ -51,19 +51,17 @@ function parseConventionalCommit(message: string): ParsedCommit {
     isConventional: false,
   }
 }
+
 function getCommits(): ParsedCommit[] {
   try {
-    // Get the last tag
     let lastTag = ''
     try {
       lastTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim()
     }
     catch {
-      // If no tags exist, get all commits
       lastTag = ''
     }
 
-    // Build the git log command - get commits since last tag
     const gitLogCommand = lastTag
       ? `git log ${lastTag}..HEAD --pretty=format:"%H%n%s%n%b%n==END=="`
       : 'git log --pretty=format:"%H%n%s%n%b%n==END=="'
@@ -377,6 +375,48 @@ const main = defineCommand({
           text: commit.subject,
         }
       })
+
+      const { wantToEdit } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'wantToEdit',
+          message: 'Do you want to edit any commit messages?',
+          default: false,
+        },
+      ])
+
+      if (wantToEdit) {
+        const editChoices = selectedCommits.map((commit, index) => ({
+          name: `[${commit.type}] ${commit.text}`,
+          value: index,
+        }))
+
+        const { indicesToEdit } = await inquirer.prompt([
+          {
+            type: 'checkbox',
+            name: 'indicesToEdit',
+            message: 'Select messages to edit:',
+            choices: editChoices,
+          },
+        ])
+
+        for (const index of indicesToEdit) {
+          const commit = selectedCommits[index]
+          if (commit) {
+            const { newText } = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'newText',
+                message: `Edit message for [${commit.type}]:`,
+                default: commit.text,
+              },
+            ])
+            commit.text = newText
+          }
+        }
+
+        console.log(`✅ Updated ${indicesToEdit.length} commit message(s)`)
+      }
     }
 
     const version = args.version || getVersion()
