@@ -50,6 +50,7 @@
     "prepack": "pnpm build",
     "prepublishOnly": "pnpm lint",
     "release": "bumpp && pnpm publish",
+    "test:unit": "vitest run",
     "test:versions": "installed-check -d --no-workspaces",
     "test:types": "tsc --noEmit"
   },
