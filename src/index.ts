@@ -52,14 +52,30 @@ function parseConventionalCommit(message: string): ParsedCommit {
   }
 }
 
-function getCommits(): ParsedCommit[] {
+function getLatestGitTag(): string {
+  try {
+    return execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim()
+  }
+  catch {
+    return ''
+  }
+}
+
+function getCommits(sinceRef?: string): ParsedCommit[] {
   try {
     let lastTag = ''
-    try {
-      lastTag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim()
+
+    if (sinceRef) {
+      try {
+        execSync(`git rev-parse "${sinceRef}"`, { encoding: 'utf8' })
+        lastTag = sinceRef
+      }
+      catch {
+        lastTag = getLatestGitTag()
+      }
     }
-    catch {
-      lastTag = ''
+    else {
+      lastTag = getLatestGitTag()
     }
 
     const gitLogCommand = lastTag
@@ -92,12 +108,8 @@ function getCommits(): ParsedCommit[] {
 }
 
 function getVersion(): string {
-  try {
-    return execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim()
-  }
-  catch {
-    return 'v0.1.0'
-  }
+  const tag = getLatestGitTag()
+  return tag || 'v0.1.0'
 }
 
 function loadChangelog(file: string): ChangelogVersion[] {
@@ -315,7 +327,9 @@ const main = defineCommand({
   async run({ args }) {
     console.log('🔍 Scanning git commits...')
 
-    const commits = getCommits()
+    const changelog = loadChangelog(args['input-file'])
+    const sinceRef = changelog.length > 0 ? changelog[0]?.version : undefined
+    const commits = getCommits(sinceRef)
     const allowedTypes = args.types.split(',').map(t => t.trim())
     const formats = args.format.split(',').map(f => f.trim()) as ExportFormat[]
 
@@ -421,7 +435,6 @@ const main = defineCommand({
 
     const version = args.version || getVersion()
     const date = new Date().toISOString().split('T')[0] || ''
-    const changelog = loadChangelog(args['input-file'])
 
     const existingVersionIndex = changelog.findIndex(entry => entry.version === version)
     const newEntry: ChangelogVersion = {
@@ -448,7 +461,9 @@ const main = defineCommand({
   },
 })
 
-runMain(main)
+if (process.env.NODE_ENV !== 'test') {
+  runMain(main)
+}
 
 export {
   exportChangelog,
